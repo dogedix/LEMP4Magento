@@ -1,6 +1,6 @@
-# Magento 2.4.8 LEMP 全自动安装项目
+# Magento 2.4.8 LEMP 本地开发环境
 
-这是一个基于 Ansible 的全自动安装项目，用于在 Ubuntu 24.04 上部署完整的 Magento 2.4.8 LEMP 技术栈。
+这是一个基于 Ansible 的本地开发环境自动安装项目，专为在 Ubuntu 24.04 上快速搭建完整的 Magento 2.4.8 LEMP 技术栈。
 
 ## 🏗️ 技术栈
 
@@ -30,81 +30,44 @@
 
 ## 📋 系统要求
 
-### 目标服务器
+### 本地开发机器
 - **操作系统**: Ubuntu 24.04 LTS
 - **CPU**: x86_64 架构，推荐 4+ 核心
 - **内存**: 最少 8GB RAM，推荐 16GB+
 - **存储**: 最少 50GB 可用空间，推荐 SSD
-- **网络**: 公网 IP 地址（用于 SSL 证书申请）
+- **用户权限**: sudo 访问权限
+- **网络**: 仅需本地网络（无需公网 IP 或域名）
 
-### 控制机器
-- 安装了 Ansible 2.14+ 的任何 Linux/macOS 系统
-- Python 3.8+
-- SSH 密钥对
+## 🚀 超简单安装
 
-## 🚀 快速开始
-
-### 1. 准备工作
+### 一键安装（仅需一个命令！）
 
 ```bash
-# 克隆项目
-git clone <项目地址>
-cd magento-lemp-ansible
+# 1. 克隆项目
+git clone https://github.com/dogedix/LEMP4Magento.git
+cd LEMP4Magento
 
-# 安装 Ansible 集合
-ansible-galaxy collection install -r requirements.yml
-
-# 加密敏感变量文件
-ansible-vault encrypt group_vars/vault.yml
+# 2. 运行安装脚本
+./install-local.sh
 ```
 
-### 2. 配置变量
+就这么简单！🎉 整个 LEMP 环境将自动安装和配置。
 
-编辑 `group_vars/all.yml`，修改以下关键变量：
+### 可选：自定义配置
 
-```yaml
-# 域名配置
-domain_name: "your-domain.com"
-admin_email: "admin@your-domain.com"
-
-# 系统配置
-system_timezone: "America/Los_Angeles"  # 或您的时区
-```
-
-编辑 `group_vars/vault.yml`（使用 ansible-vault edit）：
-
-```yaml
-vault_mysql_root_password: "your-strong-password"
-vault_mysql_magento_password: "your-magento-db-password"
-vault_redis_password: "your-redis-password"
-vault_rabbitmq_password: "your-rabbitmq-password"
-vault_magento_admin_password: "your-admin-password"
-```
-
-### 3. 执行部署
-
-#### 方法一：使用部署脚本（推荐）
+如果需要修改默认设置，编辑 `group_vars/vault.yml`：
 
 ```bash
-# 基本部署
-./deploy.sh [服务器IP] [SSH用户] [域名]
-
-# 示例
-./deploy.sh 192.168.1.100 root magento.example.com
+# 编辑敏感配置（可选）
+ansible-vault edit group_vars/vault.yml
 ```
 
-#### 方法二：手动执行
-
-```bash
-# 测试连接
-ansible magento_servers -m ping
-
-# 语法检查
-ansible-playbook site.yml --syntax-check
-
-# 执行部署
-ansible-playbook site.yml --ask-vault-pass -v
-```
+默认密码（可直接使用）：
+- MySQL root: `StrongRootPassword123!`
+- MySQL magento: `StrongMagentoPassword123!`
+- Redis: `StrongRedisPassword123!`
+- RabbitMQ: `StrongRabbitPassword123!`
+- Magento admin: `Admin123!`
 
 ## 📁 项目结构
 
@@ -217,30 +180,54 @@ curl http://localhost:9200/_cluster/health
 rabbitmqctl status
 ```
 
-## 🎯 Magento 2.4.8 安装
+## 🛒 安装 Magento 2.4.8
 
-部署完成后，按以下步骤安装 Magento：
+环境安装完成后，安装 Magento：
 
-### 1. 获取 Composer 认证密钥
-
-访问 [Magento Marketplace](https://marketplace.magento.com/) 获取您的认证密钥。
-
-### 2. 下载 Magento
+### 1. 安装 Magento
 
 ```bash
-# 切换到 magento 用户
-sudo su - magento
-
-# 创建项目
+# 进入 Web 目录
 cd /var/www
-composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:2.4.8 magento
+
+# 安装 Magento 2.4.8（需要 Magento Marketplace 认证密钥）
+composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition magento
 
 # 设置权限
 cd magento
 find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
 find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
-chown -R :www-data .
 chmod u+x bin/magento
+```
+
+### 2. 快速安装命令
+
+```bash
+cd /var/www/magento
+php bin/magento setup:install \
+    --base-url=http://localhost/magento/ \
+    --db-host=localhost \
+    --db-name=magento \
+    --db-user=magento_user \
+    --db-password=StrongMagentoPassword123! \
+    --admin-firstname=Admin \
+    --admin-lastname=User \
+    --admin-email=admin@localhost \
+    --admin-user=admin \
+    --admin-password=Admin123! \
+    --language=en_US \
+    --currency=USD \
+    --timezone=America/Los_Angeles \
+    --use-rewrites=1 \
+    --search-engine=opensearch \
+    --opensearch-host=localhost \
+    --opensearch-port=9200 \
+    --session-save=redis \
+    --session-save-redis-host=127.0.0.1 \
+    --session-save-redis-port=6379 \
+    --cache-backend=redis \
+    --cache-backend-redis-server=127.0.0.1 \
+    --cache-backend-redis-port=6379
 ```
 
 ### 3. 运行 Magento 安装

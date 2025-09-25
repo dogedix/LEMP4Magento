@@ -5,9 +5,9 @@ system_locale: "en_US.UTF-8"
 system_user: "doge"
 system_group: "doge"
 
-# Domain Configuration
-domain_name: "{{ magento_domain | default('magento.local') }}"
-admin_email: "{{ admin_email_address | default('admin@' + domain_name) }}"
+# Local Development Configuration
+domain_name: "localhost"
+admin_email: "admin@localhost"
 
 # PHP Configuration
 php_versions:
@@ -47,9 +47,10 @@ nginx_worker_processes: "auto"
 nginx_worker_connections: 1024
 nginx_client_max_body_size: "64m"
 
-# SSL Configuration
+# SSL Configuration (disabled for local development)
 ssl_certificate_email: "{{ admin_email }}"
 ssl_domain: "{{ domain_name }}"
+ssl_enabled: false
 
 # Magento Configuration
 magento_admin_user: "admin"

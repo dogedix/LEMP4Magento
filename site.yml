@@ -8,6 +8,9 @@
   vars_files:
     - group_vars/all.yml
     - group_vars/vault.yml
+  
+  vars:
+    ansible_become_user: root
 
   pre_tasks:
     - name: Update apt cache
@@ -42,6 +45,7 @@
         append: yes
         shell: /bin/bash
       become: yes
+      when: ansible_user_id != system_user
 
     - name: Create web directory
       file:
@@ -101,14 +105,14 @@
           - "Web Server: Nginx {{ nginx_version }} with ModSecurity"
           - "Reverse Proxy: Varnish {{ varnish_listen_port }}"
           - ""
-          - "Next steps:"
-          - "1. Install Magento 2.4.8 via Composer (as doge user)"
-          - "2. Configure SSL certificates with Certbot"
-          - "3. Access admin tools: Webmin, phpMyAdmin"
-          - "4. Monitor logs: /var/log/"
+          - "Next steps for local development:"
+          - "1. Install Magento: cd /var/www && composer create-project magento/project-community-edition magento"
+          - "2. Access your site: http://localhost/magento"
+          - "3. Admin tools: http://localhost/phpmyadmin | http://localhost:10000"
+          - "4. Development ready: All services configured for local use"
           - ""
-          - "Environment ready for doge user:"
-          - "- /var/www owned by doge:www-data"
-          - "- doge user added to www-data group"
-          - "- PHP-FPM pool configured for doge user"
-          - "- Composer configured for doge user"
+          - "Local environment configured:"
+          - "- HTTP only (no SSL required for localhost)"
+          - "- All services accessible via localhost"
+          - "- Optimized for doge user development"
+          - "- Ready for multiple Magento sites"

@@ -73,25 +73,10 @@
   when: fail2ban_enabled
 
 # Certbot SSL Configuration
-- name: Check if SSL certificate exists
-  stat:
-    path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
-  register: ssl_cert_check
-  when: certbot_enabled
-
-- name: Create SSL certificate with certbot
-  command: >
-    certbot --nginx --non-interactive --agree-tos
-    --email {{ certbot_email }}
-    -d {{ domain_name }}
-    {% if domain_name != 'www.' + domain_name %}
-    -d www.{{ domain_name }}
-    {% endif %}
-  become: yes
-  when: 
-    - certbot_enabled
-    - not ssl_cert_check.stat.exists
-  ignore_errors: yes
+- name: Skip SSL certificate creation for localhost
+  debug:
+    msg: "Skipping SSL certificate creation for local development ({{ domain_name }})"
+  when: domain_name == "localhost"
 
 - name: Setup certbot auto-renewal
   cron:
