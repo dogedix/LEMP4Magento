@@ -7,23 +7,10 @@ php_versions:
 php_default_version: "8.4"
 
 # PHP Extensions required for Magento 2.4.8
-# Note: Some extensions are built into PHP core (filter, hash, json, libxml, openssl, pcre, zlib, ctype, etc.)
+# Note: Most extensions are built into PHP 8.4 core and automatically loaded
 php_extensions:
-  - php{{ php_default_version }}-bcmath
-  - php{{ php_default_version }}-curl
-  - php{{ php_default_version }}-dom
   - php{{ php_default_version }}-fpm
-  - php{{ php_default_version }}-gd
-  - php{{ php_default_version }}-intl
-  - php{{ php_default_version }}-mbstring
-  - php{{ php_default_version }}-mysql
-  - php{{ php_default_version }}-soap
-  - php{{ php_default_version }}-xml
-  - php{{ php_default_version }}-xsl
-  - php{{ php_default_version }}-zip
   - php{{ php_default_version }}-cli
-  - php{{ php_default_version }}-opcache
-  - php{{ php_default_version }}-redis
 
 # PHP-FPM Configuration
 php_fpm_listen: "/run/php/php{{ php_default_version }}-fpm.sock"

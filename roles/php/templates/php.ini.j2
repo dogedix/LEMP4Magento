@@ -57,20 +57,10 @@ allow_url_include = Off
 default_socket_timeout = 60
 
 ; Dynamic Extensions
-; Dynamic Extensions (only for packages that need explicit loading)
-; Note: Many extensions are built into PHP 8.4 core and don't need extension= directives
-extension=bcmath
-extension=curl
-extension=dom
-extension=gd
-extension=intl
-extension=mbstring
-extension=soap
-extension=xml
-extension=xsl
-extension=zip
-zend_extension=opcache
-extension=redis
+; Dynamic Extensions (only load what's not already built-in)
+; Note: Most extensions are already loaded by default in PHP 8.4
+; Only load Redis if igbinary is available
+; extension=redis
 
 ; Module Settings
 

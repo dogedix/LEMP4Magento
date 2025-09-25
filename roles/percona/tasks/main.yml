@@ -7,6 +7,7 @@
       - lsb-release
       - curl
       - python3-pymysql
+      - debconf-utils
     state: present
     update_cache: yes
   become: yes
@@ -135,6 +136,7 @@
         login_unix_socket: "{{ mysql_socket }}"
         state: present
       become: yes
+      ignore_errors: yes
 
 - name: Create Magento database
   mysql_db:
