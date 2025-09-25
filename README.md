@@ -273,22 +273,32 @@ crontab -e
 * * * * * /usr/bin/php8.4 /var/www/magento/bin/magento setup:cron:run >> /var/www/magento/var/log/setup.cron.log
 ```
 
-## 🔍 管理界面访问
+## 🌐 访问您的本地环境
 
-### Webmin (系统管理)
-- URL: `https://your-server-ip:10000`
-- 用户: `root`
-- 密码: 服务器 root 密码
+安装完成后，您可以通过以下地址访问：
 
-### phpMyAdmin (数据库管理)
-- URL: `https://your-domain.com/phpmyadmin`
-- 用户: `magento_user` 或 `root`
-- 密码: 对应的数据库密码
+### Magento 网站
+- **前台**: http://localhost/magento
+- **后台**: http://localhost/magento/admin
+  - 用户名: `admin`
+  - 密码: `Admin123!`
 
-### RabbitMQ 管理界面
-- URL: `http://your-server-ip:15672`
-- 用户: `magento`
-- 密码: vault 中设置的 RabbitMQ 密码
+### 管理工具
+- **phpMyAdmin**: http://localhost/phpmyadmin
+  - 用户: `magento_user` 或 `root`
+  - 密码: `StrongMagentoPassword123!` 或 `StrongRootPassword123!`
+
+- **Webmin**: http://localhost:10000
+  - 用户: `doge`
+  - 密码: 您的系统用户密码
+
+### 服务端口
+- **Nginx**: http://localhost:80
+- **MySQL**: localhost:3306
+- **OpenSearch**: http://localhost:9200
+- **Redis**: localhost:6379
+- **RabbitMQ**: localhost:5672 (管理界面: http://localhost:15672)
+- **Varnish**: localhost:6081
 
 ## 📝 维护和监控
 
