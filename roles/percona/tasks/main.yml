@@ -23,8 +23,8 @@
     state: present
   become: yes
 
-- name: Setup Percona repository for PS 8.4
-  command: percona-release setup ps84
+- name: Setup Percona repository for PS 8.0 (latest available)
+  command: percona-release setup ps80
   become: yes
   changed_when: true
 
@@ -49,14 +49,14 @@
     vtype: "password"
   become: yes
 
-- name: Install Percona Server packages
+- name: Install Percona Server packages (without version pinning)
   apt:
     name:
-      - "percona-server-server={{ percona_package_version }}*"
-      - "percona-server-client={{ percona_package_version }}*"
+      - percona-server-server
+      - percona-server-client
       - percona-server-common
       - percona-toolkit
-      - percona-xtrabackup-84
+      - percona-xtrabackup-80
     state: present
   become: yes
   notify: restart mysql

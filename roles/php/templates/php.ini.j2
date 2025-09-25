@@ -57,36 +57,19 @@ allow_url_include = Off
 default_socket_timeout = 60
 
 ; Dynamic Extensions
+; Dynamic Extensions (only for packages that need explicit loading)
+; Note: Many extensions are built into PHP 8.4 core and don't need extension= directives
 extension=bcmath
-extension=ctype
 extension=curl
 extension=dom
-extension=fileinfo
-extension=filter
-extension=ftp
 extension=gd
-extension=hash
-extension=iconv
 extension=intl
-extension=json
-extension=libxml
 extension=mbstring
-extension=mysql
-extension=openssl
-extension=pcre
-extension=pdo
-extension=pdo_mysql
-extension=simplexml
 extension=soap
-extension=sockets
-extension=sodium
-extension=tokenizer
 extension=xml
-extension=xmlwriter
 extension=xsl
 extension=zip
-extension=zlib
-extension=opcache
+zend_extension=opcache
 extension=redis
 
 ; Module Settings

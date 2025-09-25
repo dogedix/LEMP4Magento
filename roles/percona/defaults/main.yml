@@ -1,7 +1,7 @@
 ---
 # Percona MySQL Configuration
-percona_version: "8.4"
-percona_package_version: "8.4.3-2.1"
+percona_version: "8.0"
+percona_package_version: "8.0.40"
 
 # MySQL Configuration
 mysql_bind_address: "127.0.0.1"
