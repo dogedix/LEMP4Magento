@@ -2,8 +2,8 @@
 # System Configuration
 system_timezone: "America/Los_Angeles"
 system_locale: "en_US.UTF-8"
-system_user: "magento"
-system_group: "magento"
+system_user: "doge"
+system_group: "doge"
 
 # Domain Configuration
 domain_name: "{{ magento_domain | default('magento.local') }}"

@@ -18,12 +18,12 @@
     group: root
   become: yes
 
-- name: Configure Composer for magento user
+- name: Configure Composer for doge user
   file:
     path: "/home/{{ system_user }}/.composer"
     state: directory
     owner: "{{ system_user }}"
-    group: "{{ system_group }}"
+    group: "{{ system_user }}"
     mode: '0755'
   become: yes
 

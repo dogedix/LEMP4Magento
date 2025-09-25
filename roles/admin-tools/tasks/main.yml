@@ -33,7 +33,7 @@
         dest: /var/www/
         remote_src: yes
         owner: "{{ system_user }}"
-        group: "{{ system_group }}"
+        group: "www-data"
       become: yes
 
     - name: Create phpMyAdmin symlink
@@ -48,6 +48,6 @@
         src: config.inc.php.j2
         dest: /var/www/phpmyadmin/config.inc.php
         owner: "{{ system_user }}"
-        group: "{{ system_group }}"
+        group: "www-data"
         mode: '0644'
       become: yes

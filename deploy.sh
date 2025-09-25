@@ -123,6 +123,7 @@ if ansible-playbook site.yml --ask-vault-pass -v; then
     echo "1. Install Magento 2.4.8:"
     echo "   ssh $TARGET_USER@$TARGET_IP"
     echo "   cd /var/www && composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition magento"
+    echo "   # All files will be owned by doge user with www-data group"
     echo ""
     echo "2. Configure SSL certificate:"
     echo "   certbot --nginx -d $DOMAIN_NAME"

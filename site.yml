@@ -35,14 +35,12 @@
       timezone:
         name: "{{ system_timezone }}"
 
-    - name: Create magento system user
+    - name: Ensure doge user is configured for web development
       user:
         name: "{{ system_user }}"
-        group: "{{ system_group }}"
+        groups: "www-data"
+        append: yes
         shell: /bin/bash
-        home: "/home/{{ system_user }}"
-        create_home: yes
-        system: no
       become: yes
 
     - name: Create web directory
@@ -50,7 +48,7 @@
         path: /var/www
         state: directory
         owner: "{{ system_user }}"
-        group: "{{ system_group }}"
+        group: "www-data"
         mode: '0755'
 
   roles:
@@ -104,7 +102,13 @@
           - "Reverse Proxy: Varnish {{ varnish_listen_port }}"
           - ""
           - "Next steps:"
-          - "1. Install Magento 2.4.8 via Composer"
+          - "1. Install Magento 2.4.8 via Composer (as doge user)"
           - "2. Configure SSL certificates with Certbot"
           - "3. Access admin tools: Webmin, phpMyAdmin"
           - "4. Monitor logs: /var/log/"
+          - ""
+          - "Environment ready for doge user:"
+          - "- /var/www owned by doge:www-data"
+          - "- doge user added to www-data group"
+          - "- PHP-FPM pool configured for doge user"
+          - "- Composer configured for doge user"
