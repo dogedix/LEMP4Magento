@@ -7,8 +7,9 @@
 
 - name: Install Composer
   command: "php /tmp/composer-installer.php --install-dir=/usr/local/bin --filename=composer --version={{ composer_version }}"
+  args:
+    creates: "{{ composer_install_path }}"
   become: yes
-  creates: "{{ composer_install_path }}"
 
 - name: Set Composer permissions
   file:

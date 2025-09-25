@@ -61,11 +61,9 @@ fi
 print_status "安装必需的 Ansible 集合..."
 ansible-galaxy collection install -r requirements.yml --force
 
-# Encrypt vault file if not already encrypted
-if [ -f "group_vars/vault.yml" ] && ! grep -q "\$ANSIBLE_VAULT" group_vars/vault.yml; then
-    print_warning "加密敏感配置文件..."
-    ansible-vault encrypt group_vars/vault.yml
-fi
+# For local development, we skip vault encryption to simplify the process
+# The vault file contains default passwords that are fine for local development
+print_status "使用默认密码进行本地开发（跳过加密以简化流程）"
 
 # Run syntax check
 print_status "检查配置语法..."
@@ -80,8 +78,8 @@ fi
 print_status "开始安装 LEMP 环境..."
 print_warning "安装过程可能需要 30-60 分钟，请耐心等待..."
 
-# Ask for vault password and run playbook
-if ansible-playbook site.yml --ask-vault-pass -v; then
+# Run playbook without vault password for local development
+if ansible-playbook site.yml -v; then
     print_success "LEMP 环境安装完成！"
     
     echo ""

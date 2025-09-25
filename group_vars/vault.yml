@@ -1,7 +1,6 @@
 ---
 # Vault file for sensitive data
-# Run: ansible-vault encrypt group_vars/vault.yml
-# Edit: ansible-vault edit group_vars/vault.yml
+# For local development, these default passwords are fine to use
 
 vault_mysql_root_password: "StrongRootPassword123!"
 vault_mysql_magento_password: "StrongMagentoPassword123!"
