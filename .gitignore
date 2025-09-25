@@ -1,0 +1,44 @@
+# Ansible
+*.retry
+.vault_pass
+.ansible_vault_password
+
+# Logs
+*.log
+
+# Temporary files
+/tmp/
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+
+# Local configuration overrides
+local_vars.yml
+local_inventory.yml
+
+# Backup files
+*.bak
+*.backup
+
+# Cache directories
+.cache/
+__pycache__/
+
+# Environment files
+.env
+.env.local

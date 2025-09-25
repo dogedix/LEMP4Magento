@@ -1,0 +1,67 @@
+---
+- name: Install OpenSearch dependencies
+  apt:
+    name:
+      - openjdk-11-jdk
+      - wget
+      - curl
+    state: present
+  become: yes
+
+- name: Download OpenSearch 2.19
+  get_url:
+    url: "https://artifacts.opensearch.org/releases/bundle/opensearch/2.19.0/opensearch-2.19.0-linux-x64.tar.gz"
+    dest: "/tmp/opensearch-2.19.0-linux-x64.tar.gz"
+  become: yes
+
+- name: Create opensearch user
+  user:
+    name: opensearch
+    system: yes
+    shell: /bin/false
+    home: /var/lib/opensearch
+    createhome: yes
+  become: yes
+
+- name: Extract OpenSearch
+  unarchive:
+    src: "/tmp/opensearch-2.19.0-linux-x64.tar.gz"
+    dest: /opt/
+    remote_src: yes
+    owner: opensearch
+    group: opensearch
+  become: yes
+
+- name: Create OpenSearch symlink
+  file:
+    src: /opt/opensearch-2.19.0
+    dest: /opt/opensearch
+    state: link
+  become: yes
+
+- name: Configure OpenSearch for single node
+  lineinfile:
+    path: /opt/opensearch/config/opensearch.yml
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^cluster.name:', line: 'cluster.name: {{ opensearch_cluster_name }}' }
+    - { regexp: '^node.name:', line: 'node.name: {{ opensearch_node_name }}' }
+    - { regexp: '^network.host:', line: 'network.host: 127.0.0.1' }
+    - { regexp: '^http.port:', line: 'http.port: {{ opensearch_http_port }}' }
+    - { regexp: '^discovery.type:', line: 'discovery.type: single-node' }
+  become: yes
+
+- name: Create OpenSearch systemd service
+  template:
+    src: opensearch.service.j2
+    dest: /etc/systemd/system/opensearch.service
+  become: yes
+
+- name: Start and enable OpenSearch
+  systemd:
+    name: opensearch
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  become: yes

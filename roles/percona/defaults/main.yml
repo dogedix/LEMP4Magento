@@ -1,0 +1,74 @@
+---
+# Percona MySQL Configuration
+percona_version: "8.4"
+percona_package_version: "8.4.3-2.1"
+
+# MySQL Configuration
+mysql_bind_address: "127.0.0.1"
+mysql_port: 3306
+mysql_datadir: "/var/lib/mysql"
+mysql_tmpdir: "/tmp"
+mysql_socket: "/var/run/mysqld/mysqld.sock"
+
+# InnoDB Configuration
+mysql_innodb_buffer_pool_size: "1G"
+mysql_innodb_buffer_pool_instances: 1
+mysql_innodb_log_file_size: "256M"
+mysql_innodb_log_buffer_size: "16M"
+mysql_innodb_flush_log_at_trx_commit: 1
+mysql_innodb_flush_method: "O_DIRECT"
+mysql_innodb_file_per_table: 1
+mysql_innodb_open_files: 400
+
+# Query Cache (disabled in MySQL 8.0+)
+mysql_query_cache_type: 0
+mysql_query_cache_size: 0
+
+# Connection and Threading
+mysql_max_connections: 200
+mysql_thread_cache_size: 50
+mysql_table_open_cache: 4000
+mysql_table_definition_cache: 2000
+
+# Buffer Sizes
+mysql_key_buffer_size: "256M"
+mysql_max_allowed_packet: "64M"
+mysql_thread_stack: "256K"
+mysql_sort_buffer_size: "4M"
+mysql_read_buffer_size: "2M"
+mysql_read_rnd_buffer_size: "16M"
+mysql_myisam_sort_buffer_size: "128M"
+
+# Temporary Tables
+mysql_tmp_table_size: "32M"
+mysql_max_heap_table_size: "32M"
+
+# Logging
+mysql_log_error: "/var/log/mysql/error.log"
+mysql_slow_query_log: 1
+mysql_slow_query_log_file: "/var/log/mysql/slow.log"
+mysql_long_query_time: 2
+
+# Binary Logging
+mysql_server_id: 1
+mysql_log_bin: "mysql-bin"
+mysql_binlog_format: "ROW"
+mysql_expire_logs_days: 7
+mysql_max_binlog_size: "100M"
+
+# Security
+mysql_local_infile: 0
+mysql_symbolic_links: 0
+
+# Character Set
+mysql_character_set_server: "utf8mb4"
+mysql_collation_server: "utf8mb4_unicode_ci"
+
+# SQL Mode
+mysql_sql_mode: "STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO"
+
+# Time Zone
+mysql_default_time_zone: "system"
+
+# Magento specific optimizations
+mysql_optimizer_switch: "use_index_extensions=off"

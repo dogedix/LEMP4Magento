@@ -1,0 +1,59 @@
+# CRS Setup Configuration File
+SecRule TX:EXECUTING_PARANOIA_LEVEL "@lt 1" "id:901011,phase:1,pass,nolog,skipAfter:END-REQUEST-901-INITIALIZATION"
+SecRule TX:EXECUTING_PARANOIA_LEVEL "@lt 2" "id:901012,phase:1,pass,nolog,skipAfter:END-REQUEST-901-INITIALIZATION"
+SecRule TX:EXECUTING_PARANOIA_LEVEL "@lt 3" "id:901013,phase:1,pass,nolog,skipAfter:END-REQUEST-901-INITIALIZATION"
+SecRule TX:EXECUTING_PARANOIA_LEVEL "@lt 4" "id:901014,phase:1,pass,nolog,skipAfter:END-REQUEST-901-INITIALIZATION"
+
+# Paranoia Level
+SecAction \
+  "id:900000,\
+   phase:1,\
+   nolog,\
+   pass,\
+   t:none,\
+   setvar:tx.paranoia_level=1"
+
+# Executing Paranoia Level
+SecAction \
+  "id:900001,\
+   phase:1,\
+   nolog,\
+   pass,\
+   t:none,\
+   setvar:tx.executing_paranoia_level=1"
+
+# Anomaly Scoring Mode
+SecAction \
+  "id:900110,\
+   phase:1,\
+   nolog,\
+   pass,\
+   t:none,\
+   setvar:tx.anomaly_score_blocking=on"
+
+# Inbound Anomaly Threshold
+SecAction \
+  "id:900100,\
+   phase:1,\
+   nolog,\
+   pass,\
+   t:none,\
+   setvar:tx.inbound_anomaly_score_threshold=5"
+
+# Outbound Anomaly Threshold  
+SecAction \
+  "id:900101,\
+   phase:1,\
+   nolog,\
+   pass,\
+   t:none,\
+   setvar:tx.outbound_anomaly_score_threshold=4"
+
+# Sampling Percentage
+SecAction \
+  "id:900400,\
+   phase:5,\
+   nolog,\
+   pass,\
+   t:none,\
+   setvar:tx.sampling_percentage=100"

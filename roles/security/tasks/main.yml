@@ -1,0 +1,156 @@
+---
+- name: Install security packages
+  apt:
+    name:
+      - fail2ban
+      - ufw
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+  become: yes
+
+# UFW Firewall Configuration
+- name: Reset UFW firewall
+  ufw:
+    state: reset
+  become: yes
+  when: ufw_enabled
+
+- name: Set UFW default policy
+  ufw:
+    policy: deny
+    direction: incoming
+  become: yes
+  when: ufw_enabled
+
+- name: Configure UFW rules
+  ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.proto | default('tcp') }}"
+    comment: "{{ item.comment | default('') }}"
+  loop: "{{ ufw_rules }}"
+  become: yes
+  when: ufw_enabled
+
+- name: Enable UFW firewall
+  ufw:
+    state: enabled
+  become: yes
+  when: ufw_enabled
+
+# Fail2ban Configuration
+- name: Create fail2ban local configuration
+  template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  become: yes
+  notify: restart fail2ban
+  when: fail2ban_enabled
+
+- name: Create fail2ban filter for nginx
+  template:
+    src: nginx-badbots.conf.j2
+    dest: /etc/fail2ban/filter.d/nginx-badbots.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart fail2ban
+  when: fail2ban_enabled
+
+- name: Start and enable fail2ban
+  systemd:
+    name: fail2ban
+    state: started
+    enabled: yes
+  become: yes
+  when: fail2ban_enabled
+
+# Certbot SSL Configuration
+- name: Check if SSL certificate exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+  register: ssl_cert_check
+  when: certbot_enabled
+
+- name: Create SSL certificate with certbot
+  command: >
+    certbot --nginx --non-interactive --agree-tos
+    --email {{ certbot_email }}
+    -d {{ domain_name }}
+    {% if domain_name != 'www.' + domain_name %}
+    -d www.{{ domain_name }}
+    {% endif %}
+  become: yes
+  when: 
+    - certbot_enabled
+    - not ssl_cert_check.stat.exists
+  ignore_errors: yes
+
+- name: Setup certbot auto-renewal
+  cron:
+    name: "Certbot auto-renewal"
+    job: "/usr/bin/certbot renew --quiet --nginx"
+    minute: "0"
+    hour: "12"
+    day: "*"
+    month: "*"
+    weekday: "*"
+  become: yes
+  when: certbot_enabled
+
+# Additional Security Configurations
+- name: Configure SSH security
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    backup: yes
+  loop:
+    - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin prohibit-password' }
+    - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+    - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+    - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
+    - { regexp: '^#?ClientAliveInterval', line: 'ClientAliveInterval 300' }
+    - { regexp: '^#?ClientAliveCountMax', line: 'ClientAliveCountMax 2' }
+  become: yes
+  notify: restart ssh
+
+- name: Disable unused network protocols
+  lineinfile:
+    path: /etc/modprobe.d/blacklist-rare-network.conf
+    line: "{{ item }}"
+    create: yes
+  loop:
+    - "install dccp /bin/true"
+    - "install sctp /bin/true"
+    - "install rds /bin/true"
+    - "install tipc /bin/true"
+  become: yes
+
+- name: Set kernel security parameters
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { name: "net.ipv4.ip_forward", value: "0" }
+    - { name: "net.ipv4.conf.all.send_redirects", value: "0" }
+    - { name: "net.ipv4.conf.default.send_redirects", value: "0" }
+    - { name: "net.ipv4.conf.all.accept_redirects", value: "0" }
+    - { name: "net.ipv4.conf.default.accept_redirects", value: "0" }
+    - { name: "net.ipv4.conf.all.secure_redirects", value: "0" }
+    - { name: "net.ipv4.conf.default.secure_redirects", value: "0" }
+    - { name: "net.ipv4.conf.all.log_martians", value: "1" }
+    - { name: "net.ipv4.conf.default.log_martians", value: "1" }
+    - { name: "net.ipv4.icmp_echo_ignore_broadcasts", value: "1" }
+    - { name: "net.ipv4.icmp_ignore_bogus_error_responses", value: "1" }
+    - { name: "net.ipv4.tcp_syncookies", value: "1" }
+  become: yes

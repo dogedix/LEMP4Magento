@@ -1,0 +1,53 @@
+---
+- name: Install Webmin
+  block:
+    - name: Add Webmin repository key
+      apt_key:
+        url: "http://www.webmin.com/jcameron-key.asc"
+        state: present
+      become: yes
+
+    - name: Add Webmin repository
+      apt_repository:
+        repo: "deb http://download.webmin.com/download/repository sarge contrib"
+        state: present
+      become: yes
+
+    - name: Install Webmin
+      apt:
+        name: webmin
+        state: present
+        update_cache: yes
+      become: yes
+
+- name: Download and install phpMyAdmin
+  block:
+    - name: Download phpMyAdmin
+      get_url:
+        url: "https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.gz"
+        dest: "/tmp/phpMyAdmin-5.2.1-all-languages.tar.gz"
+
+    - name: Extract phpMyAdmin
+      unarchive:
+        src: "/tmp/phpMyAdmin-5.2.1-all-languages.tar.gz"
+        dest: /var/www/
+        remote_src: yes
+        owner: "{{ system_user }}"
+        group: "{{ system_group }}"
+      become: yes
+
+    - name: Create phpMyAdmin symlink
+      file:
+        src: /var/www/phpMyAdmin-5.2.1-all-languages
+        dest: /var/www/phpmyadmin
+        state: link
+      become: yes
+
+    - name: Create phpMyAdmin config
+      template:
+        src: config.inc.php.j2
+        dest: /var/www/phpmyadmin/config.inc.php
+        owner: "{{ system_user }}"
+        group: "{{ system_group }}"
+        mode: '0644'
+      become: yes

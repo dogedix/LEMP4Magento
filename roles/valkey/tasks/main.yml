@@ -1,0 +1,77 @@
+---
+- name: Install Valkey (Redis-compatible) dependencies
+  apt:
+    name:
+      - wget
+      - build-essential
+      - tcl
+    state: present
+  become: yes
+
+- name: Download and install Valkey 8
+  block:
+    - name: Download Valkey source
+      get_url:
+        url: "https://download.valkey.io/valkey-8.0.1.tar.gz"
+        dest: "/tmp/valkey-8.0.1.tar.gz"
+
+    - name: Extract Valkey source
+      unarchive:
+        src: "/tmp/valkey-8.0.1.tar.gz"
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Compile Valkey
+      make:
+        chdir: "/tmp/valkey-8.0.1"
+
+    - name: Install Valkey
+      make:
+        chdir: "/tmp/valkey-8.0.1"
+        target: install
+      become: yes
+
+- name: Create valkey user
+  user:
+    name: valkey
+    system: yes
+    shell: /bin/false
+    home: /var/lib/valkey
+    createhome: yes
+  become: yes
+
+- name: Create Valkey directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: valkey
+    group: valkey
+    mode: '0755'
+  loop:
+    - /etc/valkey
+    - /var/lib/valkey
+    - /var/log/valkey
+  become: yes
+
+- name: Configure Valkey
+  template:
+    src: valkey.conf.j2
+    dest: /etc/valkey/valkey.conf
+    owner: valkey
+    group: valkey
+    mode: '0640'
+  become: yes
+
+- name: Create Valkey systemd service
+  template:
+    src: valkey.service.j2
+    dest: /etc/systemd/system/valkey.service
+  become: yes
+
+- name: Start and enable Valkey
+  systemd:
+    name: valkey
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  become: yes

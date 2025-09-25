@@ -1,0 +1,93 @@
+---
+- name: Add Ondrej PHP repository
+  apt_repository:
+    repo: "ppa:ondrej/php"
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Install PHP versions and extensions
+  apt:
+    name: "{{ php_extensions }}"
+    state: present
+  become: yes
+  notify: restart php-fpm
+
+- name: Install additional PHP packages
+  apt:
+    name:
+      - php{{ php_default_version }}-dev
+      - php-pear
+    state: present
+  become: yes
+
+- name: Create PHP-FPM pool directories
+  file:
+    path: "/etc/php/{{ php_default_version }}/fpm/pool.d"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
+
+- name: Configure PHP-FPM pool for Magento
+  template:
+    src: magento.conf.j2
+    dest: "/etc/php/{{ php_default_version }}/fpm/pool.d/magento.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart php-fpm
+
+- name: Configure PHP.ini for CLI
+  template:
+    src: php.ini.j2
+    dest: "/etc/php/{{ php_default_version }}/cli/php.ini"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  become: yes
+
+- name: Configure PHP.ini for FPM
+  template:
+    src: php.ini.j2
+    dest: "/etc/php/{{ php_default_version }}/fpm/php.ini"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  become: yes
+  notify: restart php-fpm
+
+- name: Create PHP log directory
+  file:
+    path: /var/log/php
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  become: yes
+
+- name: Start and enable PHP-FPM service
+  systemd:
+    name: "php{{ php_default_version }}-fpm"
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Verify PHP installation
+  command: "php{{ php_default_version }} --version"
+  register: php_version_output
+  changed_when: false
+
+- name: Display PHP version
+  debug:
+    msg: "{{ php_version_output.stdout_lines[0] }}"

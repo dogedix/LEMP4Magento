@@ -1,0 +1,110 @@
+---
+# Magento 2.4.8 LEMP Stack Installation Playbook
+- name: Deploy Magento 2.4.8 LEMP Stack
+  hosts: magento_servers
+  become: yes
+  gather_facts: yes
+  
+  vars_files:
+    - group_vars/all.yml
+    - group_vars/vault.yml
+
+  pre_tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install basic system packages
+      apt:
+        name:
+          - curl
+          - wget
+          - unzip
+          - git
+          - htop
+          - vim
+          - software-properties-common
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Set system timezone
+      timezone:
+        name: "{{ system_timezone }}"
+
+    - name: Create magento system user
+      user:
+        name: "{{ system_user }}"
+        group: "{{ system_group }}"
+        shell: /bin/bash
+        home: "/home/{{ system_user }}"
+        create_home: yes
+        system: no
+      become: yes
+
+    - name: Create web directory
+      file:
+        path: /var/www
+        state: directory
+        owner: "{{ system_user }}"
+        group: "{{ system_group }}"
+        mode: '0755'
+
+  roles:
+    - role: php
+      tags: ['php']
+    
+    - role: percona
+      tags: ['database', 'mysql']
+    
+    - role: valkey
+      tags: ['cache', 'redis']
+      when: valkey_role_enabled | default(true)
+    
+    - role: opensearch
+      tags: ['search', 'elasticsearch']
+      when: opensearch_role_enabled | default(true)
+    
+    - role: rabbitmq
+      tags: ['queue', 'rabbitmq']
+      when: rabbitmq_role_enabled | default(true)
+    
+    - role: nginx
+      tags: ['webserver', 'nginx']
+    
+    - role: varnish
+      tags: ['cache', 'varnish']
+      when: varnish_role_enabled | default(true)
+    
+    - role: composer
+      tags: ['composer']
+    
+    - role: security
+      tags: ['security', 'fail2ban', 'certbot']
+    
+    - role: admin-tools
+      tags: ['admin', 'tools']
+      when: admin_tools_enabled | default(true)
+
+  post_tasks:
+    - name: Display installation summary
+      debug:
+        msg:
+          - "=== Magento 2.4.8 LEMP Stack Installation Complete ==="
+          - "Domain: {{ domain_name }}"
+          - "PHP Version: {{ php_default_version }}"
+          - "Database: Percona {{ percona_version }}"
+          - "Cache: Valkey {{ redis_port }}"
+          - "Search: OpenSearch {{ opensearch_http_port }}"
+          - "Queue: RabbitMQ"
+          - "Web Server: Nginx {{ nginx_version }} with ModSecurity"
+          - "Reverse Proxy: Varnish {{ varnish_listen_port }}"
+          - ""
+          - "Next steps:"
+          - "1. Install Magento 2.4.8 via Composer"
+          - "2. Configure SSL certificates with Certbot"
+          - "3. Access admin tools: Webmin, phpMyAdmin"
+          - "4. Monitor logs: /var/log/"

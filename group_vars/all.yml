@@ -1,0 +1,62 @@
+---
+# System Configuration
+system_timezone: "America/Los_Angeles"
+system_locale: "en_US.UTF-8"
+system_user: "magento"
+system_group: "magento"
+
+# Domain Configuration
+domain_name: "{{ magento_domain | default('magento.local') }}"
+admin_email: "{{ admin_email_address | default('admin@' + domain_name) }}"
+
+# PHP Configuration
+php_versions:
+  - "8.4"
+  - "8.3"
+php_default_version: "8.4"
+php_fpm_listen: "/run/php/php{{ php_default_version }}-fpm.sock"
+
+# Database Configuration
+mysql_root_password: "{{ vault_mysql_root_password | default('StrongRootPassword123!') }}"
+mysql_magento_db: "magento"
+mysql_magento_user: "magento_user"
+mysql_magento_password: "{{ vault_mysql_magento_password | default('StrongMagentoPassword123!') }}"
+
+# Redis/Valkey Configuration
+redis_password: "{{ vault_redis_password | default('StrongRedisPassword123!') }}"
+redis_port: 6379
+redis_maxmemory: "256mb"
+
+# OpenSearch Configuration
+opensearch_cluster_name: "magento-cluster"
+opensearch_node_name: "magento-node-1"
+opensearch_http_port: 9200
+opensearch_transport_port: 9300
+
+# RabbitMQ Configuration
+rabbitmq_user: "magento"
+rabbitmq_password: "{{ vault_rabbitmq_password | default('StrongRabbitPassword123!') }}"
+rabbitmq_vhost: "magento"
+
+# Varnish Configuration
+varnish_listen_port: 6081
+varnish_memory: "256m"
+
+# Nginx Configuration
+nginx_worker_processes: "auto"
+nginx_worker_connections: 1024
+nginx_client_max_body_size: "64m"
+
+# SSL Configuration
+ssl_certificate_email: "{{ admin_email }}"
+ssl_domain: "{{ domain_name }}"
+
+# Magento Configuration
+magento_admin_user: "admin"
+magento_admin_password: "{{ vault_magento_admin_password | default('Admin123!') }}"
+magento_admin_email: "{{ admin_email }}"
+magento_version: "2.4.8"
+
+# Security Configuration
+fail2ban_enabled: true
+firewall_enabled: true

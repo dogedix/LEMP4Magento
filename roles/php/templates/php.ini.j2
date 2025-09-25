@@ -1,0 +1,194 @@
+[PHP]
+; Engine Configuration
+engine = On
+short_open_tag = Off
+precision = 14
+output_buffering = 4096
+zlib.output_compression = Off
+implicit_flush = Off
+unserialize_callback_func =
+serialize_precision = -1
+disable_functions =
+disable_classes =
+zend.enable_gc = On
+zend.exception_ignore_args = On
+zend.exception_string_param_max_len = 0
+
+; Miscellaneous
+expose_php = Off
+
+; Resource Limits
+max_execution_time = {{ php_max_execution_time }}
+max_input_time = {{ php_max_input_time }}
+max_input_vars = {{ php_max_input_vars }}
+memory_limit = {{ php_memory_limit }}
+
+; Error handling and logging
+error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
+display_errors = Off
+display_startup_errors = Off
+log_errors = On
+log_errors_max_len = 1024
+ignore_repeated_errors = Off
+ignore_repeated_source = Off
+report_memleaks = On
+xmlrpc_errors = 0
+xmlrpc_error_number = 0
+
+; Data Handling
+variables_order = "GPCS"
+request_order = "GP"
+register_argc_argv = Off
+auto_globals_jit = On
+post_max_size = {{ php_post_max_size }}
+auto_prepend_file =
+auto_append_file =
+default_mimetype = "text/html"
+default_charset = "UTF-8"
+
+; File Uploads
+file_uploads = On
+upload_max_filesize = {{ php_upload_max_filesize }}
+max_file_uploads = {{ php_max_file_uploads }}
+
+; Fopen wrappers
+allow_url_fopen = On
+allow_url_include = Off
+default_socket_timeout = 60
+
+; Dynamic Extensions
+extension=bcmath
+extension=ctype
+extension=curl
+extension=dom
+extension=fileinfo
+extension=filter
+extension=ftp
+extension=gd
+extension=hash
+extension=iconv
+extension=intl
+extension=json
+extension=libxml
+extension=mbstring
+extension=mysql
+extension=openssl
+extension=pcre
+extension=pdo
+extension=pdo_mysql
+extension=simplexml
+extension=soap
+extension=sockets
+extension=sodium
+extension=tokenizer
+extension=xml
+extension=xmlwriter
+extension=xsl
+extension=zip
+extension=zlib
+extension=opcache
+extension=redis
+
+; Module Settings
+
+[CLI Server]
+cli_server.color = On
+
+[Date]
+date.timezone = {{ php_date_timezone }}
+
+[filter]
+filter.default = unsafe_raw
+filter.default_flags =
+
+[iconv]
+iconv.input_encoding = UTF-8
+iconv.internal_encoding = UTF-8
+iconv.output_encoding = UTF-8
+
+[imap]
+imap.enable_insecure_rsh = 0
+
+[intl]
+intl.default_locale = en_US.UTF-8
+intl.error_level = 0
+intl.use_exceptions = 0
+
+[sqlite3]
+sqlite3.extension_dir =
+
+[Pcre]
+pcre.backtrack_limit = 100000
+pcre.recursion_limit = 100000
+pcre.jit = 1
+
+[Pdo]
+pdo_mysql.default_socket =
+
+[Pdo_mysql]
+pdo_mysql.default_socket =
+
+[Phar]
+phar.readonly = On
+phar.require_hash = On
+phar.cache_list =
+
+[mail function]
+SMTP = localhost
+smtp_port = 25
+mail.add_x_header = Off
+
+[ODBC]
+odbc.allow_persistent = On
+odbc.check_persistent = On
+odbc.max_persistent = -1
+odbc.max_links = -1
+odbc.defaultlrl = 4096
+odbc.defaultbinmode = 1
+
+[MySQL]
+mysql.allow_local_infile = On
+mysql.allow_persistent = On
+mysql.cache_type = ''
+mysql.max_persistent = -1
+mysql.max_links = -1
+mysql.default_port =
+mysql.default_socket =
+mysql.default_host =
+mysql.default_user =
+mysql.default_password =
+mysql.connect_timeout = 60
+mysql.trace_mode = Off
+
+[MySQLi]
+mysqli.max_persistent = -1
+mysqli.allow_persistent = On
+mysqli.max_links = -1
+mysqli.default_port = 3306
+mysqli.default_socket =
+mysqli.default_host =
+mysqli.default_user =
+mysqli.default_pw =
+mysqli.reconnect = Off
+
+[mysqlnd]
+mysqlnd.collect_statistics = On
+mysqlnd.collect_memory_statistics = Off
+
+[OPcache]
+opcache.enable = {{ php_opcache_enable }}
+opcache.enable_cli = 1
+opcache.memory_consumption = {{ php_opcache_memory_consumption }}
+opcache.interned_strings_buffer = {{ php_opcache_interned_strings_buffer }}
+opcache.max_accelerated_files = {{ php_opcache_max_accelerated_files }}
+opcache.revalidate_freq = {{ php_opcache_revalidate_freq }}
+opcache.validate_timestamps = {{ php_opcache_validate_timestamps }}
+opcache.save_comments = 1
+opcache.enable_file_override = 0
+
+[curl]
+curl.cainfo =
+
+[openssl]
+openssl.cafile =
+openssl.capath =

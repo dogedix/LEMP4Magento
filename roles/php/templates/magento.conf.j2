@@ -1,0 +1,41 @@
+[magento]
+user = {{ system_user }}
+group = {{ system_group }}
+listen = {{ php_fpm_listen }}
+listen.owner = {{ php_fpm_listen_owner }}
+listen.group = {{ php_fpm_listen_group }}
+listen.mode = {{ php_fpm_listen_mode }}
+listen.allowed_clients = 127.0.0.1
+
+pm = dynamic
+pm.max_children = 50
+pm.start_servers = 5
+pm.min_spare_servers = 5
+pm.max_spare_servers = 35
+pm.max_requests = 500
+
+; Logging
+access.log = /var/log/php/magento-access.log
+slowlog = /var/log/php/magento-slow.log
+request_slowlog_timeout = 10s
+
+; Security
+security.limit_extensions = .php
+
+; Environment variables
+env[HOSTNAME] = $HOSTNAME
+env[PATH] = /usr/local/bin:/usr/bin:/bin
+env[TMP] = /tmp
+env[TMPDIR] = /tmp
+env[TEMP] = /tmp
+
+; PHP admin values
+php_admin_value[sendmail_path] = /usr/sbin/sendmail -t -i -f {{ admin_email }}
+php_admin_value[error_log] = /var/log/php/magento-error.log
+php_admin_flag[log_errors] = on
+php_admin_value[memory_limit] = {{ php_memory_limit }}
+php_admin_value[max_execution_time] = {{ php_max_execution_time }}
+php_admin_value[max_input_time] = {{ php_max_input_time }}
+php_admin_value[max_input_vars] = {{ php_max_input_vars }}
+php_admin_value[post_max_size] = {{ php_post_max_size }}
+php_admin_value[upload_max_filesize] = {{ php_upload_max_filesize }}

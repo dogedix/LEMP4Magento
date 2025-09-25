@@ -1,0 +1,238 @@
+---
+- name: Install dependencies for Nginx compilation
+  apt:
+    name:
+      - build-essential
+      - libpcre3-dev
+      - libssl-dev
+      - zlib1g-dev
+      - libgeoip-dev
+      - libgd-dev
+      - libxml2-dev
+      - libxslt1-dev
+      - wget
+      - git
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Install ModSecurity dependencies
+  apt:
+    name:
+      - libmodsecurity3
+      - libmodsecurity-dev
+      - modsecurity-crs
+    state: present
+  become: yes
+
+- name: Create nginx user
+  user:
+    name: "{{ nginx_user }}"
+    system: yes
+    shell: /bin/false
+    home: /var/cache/nginx
+    createhome: no
+  become: yes
+
+- name: Create nginx directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0755'
+  loop:
+    - /etc/nginx
+    - /etc/nginx/conf.d
+    - /etc/nginx/sites-available
+    - /etc/nginx/sites-enabled
+    - /etc/nginx/modsec
+    - /var/log/nginx
+    - /var/cache/nginx
+    - /var/lib/nginx
+  become: yes
+
+- name: Download and compile Nginx with ModSecurity
+  block:
+    - name: Download Nginx source
+      get_url:
+        url: "http://nginx.org/download/nginx-{{ nginx_version }}.tar.gz"
+        dest: "/tmp/nginx-{{ nginx_version }}.tar.gz"
+        mode: '0644'
+
+    - name: Extract Nginx source
+      unarchive:
+        src: "/tmp/nginx-{{ nginx_version }}.tar.gz"
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Clone ModSecurity-nginx connector
+      git:
+        repo: https://github.com/SpiderLabs/ModSecurity-nginx.git
+        dest: /tmp/ModSecurity-nginx
+        version: master
+
+    - name: Configure Nginx build
+      command: >
+        ./configure
+        --prefix=/etc/nginx
+        --sbin-path=/usr/sbin/nginx
+        --modules-path=/usr/lib/nginx/modules
+        --conf-path=/etc/nginx/nginx.conf
+        --error-log-path=/var/log/nginx/error.log
+        --http-log-path=/var/log/nginx/access.log
+        --pid-path=/var/run/nginx.pid
+        --lock-path=/var/run/nginx.lock
+        --http-client-body-temp-path=/var/cache/nginx/client_temp
+        --http-proxy-temp-path=/var/cache/nginx/proxy_temp
+        --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp
+        --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp
+        --http-scgi-temp-path=/var/cache/nginx/scgi_temp
+        --user={{ nginx_user }}
+        --group={{ nginx_group }}
+        --with-compat
+        --with-file-aio
+        --with-threads
+        --with-http_addition_module
+        --with-http_auth_request_module
+        --with-http_dav_module
+        --with-http_flv_module
+        --with-http_gunzip_module
+        --with-http_gzip_static_module
+        --with-http_mp4_module
+        --with-http_random_index_module
+        --with-http_realip_module
+        --with-http_secure_link_module
+        --with-http_slice_module
+        --with-http_ssl_module
+        --with-http_stub_status_module
+        --with-http_sub_module
+        --with-http_v2_module
+        --with-stream
+        --with-stream_realip_module
+        --with-stream_ssl_module
+        --with-stream_ssl_preread_module
+        --add-dynamic-module=/tmp/ModSecurity-nginx
+      args:
+        chdir: "/tmp/nginx-{{ nginx_version }}"
+      register: nginx_configure
+
+    - name: Compile Nginx
+      command: make -j{{ ansible_processor_vcpus }}
+      args:
+        chdir: "/tmp/nginx-{{ nginx_version }}"
+
+    - name: Install Nginx
+      command: make install
+      args:
+        chdir: "/tmp/nginx-{{ nginx_version }}"
+      become: yes
+
+  become: yes
+
+- name: Create Nginx systemd service file
+  template:
+    src: nginx.service.j2
+    dest: /etc/systemd/system/nginx.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: reload systemd
+
+- name: Create main Nginx configuration
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  become: yes
+  notify: restart nginx
+
+- name: Configure ModSecurity
+  template:
+    src: modsecurity.conf.j2
+    dest: /etc/nginx/modsec/modsecurity.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart nginx
+
+- name: Download OWASP Core Rule Set
+  get_url:
+    url: "{{ owasp_crs_url }}"
+    dest: "/tmp/owasp-crs-{{ owasp_crs_version }}.tar.gz"
+    mode: '0644'
+  become: yes
+
+- name: Extract OWASP CRS
+  unarchive:
+    src: "/tmp/owasp-crs-{{ owasp_crs_version }}.tar.gz"
+    dest: /tmp/
+    remote_src: yes
+  become: yes
+
+- name: Copy OWASP CRS rules
+  copy:
+    src: "/tmp/coreruleset-{{ owasp_crs_version }}/rules/"
+    dest: /etc/nginx/modsec/
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+
+- name: Create OWASP CRS main configuration
+  template:
+    src: crs-setup.conf.j2
+    dest: /etc/nginx/modsec/crs-setup.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: restart nginx
+
+- name: Create Magento site configuration
+  template:
+    src: magento.conf.j2
+    dest: /etc/nginx/sites-available/magento.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+
+- name: Enable Magento site
+  file:
+    src: /etc/nginx/sites-available/magento.conf
+    dest: /etc/nginx/sites-enabled/magento.conf
+    state: link
+  become: yes
+  notify: restart nginx
+
+- name: Remove default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: yes
+  notify: restart nginx
+
+- name: Start and enable Nginx service
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  become: yes
+
+- name: Verify Nginx configuration
+  command: nginx -t
+  register: nginx_syntax_check
+  changed_when: false
+  become: yes
+
+- name: Display Nginx syntax check result
+  debug:
+    msg: "{{ nginx_syntax_check.stderr_lines }}"

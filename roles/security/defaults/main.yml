@@ -1,0 +1,45 @@
+---
+# Fail2ban Configuration
+fail2ban_enabled: true
+fail2ban_bantime: "1h"
+fail2ban_findtime: "10m"
+fail2ban_maxretry: 5
+fail2ban_backend: "systemd"
+
+# Fail2ban jails
+fail2ban_jails:
+  - name: "sshd"
+    enabled: true
+    port: "ssh"
+    logpath: "/var/log/auth.log"
+    maxretry: 3
+  - name: "nginx-http-auth"
+    enabled: true
+    port: "http,https"
+    logpath: "/var/log/nginx/error.log"
+  - name: "nginx-noscript"
+    enabled: true
+    port: "http,https"
+    logpath: "/var/log/nginx/access.log"
+  - name: "nginx-badbots"
+    enabled: true
+    port: "http,https"
+    logpath: "/var/log/nginx/access.log"
+  - name: "nginx-noproxy"
+    enabled: true
+    port: "http,https"
+    logpath: "/var/log/nginx/access.log"
+
+# Certbot Configuration
+certbot_enabled: true
+certbot_email: "{{ ssl_certificate_email }}"
+certbot_create_if_missing: true
+certbot_create_standalone_stop_services: []
+
+# UFW Firewall Configuration
+ufw_enabled: true
+ufw_rules:
+  - { rule: "allow", port: "22", proto: "tcp", comment: "SSH" }
+  - { rule: "allow", port: "80", proto: "tcp", comment: "HTTP" }
+  - { rule: "allow", port: "443", proto: "tcp", comment: "HTTPS" }
+  - { rule: "allow", port: "10000", proto: "tcp", comment: "Webmin" }

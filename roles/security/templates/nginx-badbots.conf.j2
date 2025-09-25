@@ -1,0 +1,8 @@
+[Definition]
+failregex = ^<HOST> -.*"(GET|POST).*HTTP.*"(404|403|400|401|444).*$
+            ^<HOST> -.*"(GET|POST).*(\.php|\.asp|\.exe|\.pl|\.cgi|\.scgi).*HTTP.*".*$
+            ^<HOST> -.*"(GET|POST).*\.(asp|exe|pl|cgi|scgi).*HTTP.*".*$
+
+ignoreregex =
+
+# This filter blocks access to several attack types

@@ -1,0 +1,34 @@
+[DEFAULT]
+bantime = {{ fail2ban_bantime }}
+findtime = {{ fail2ban_findtime }}
+maxretry = {{ fail2ban_maxretry }}
+backend = {{ fail2ban_backend }}
+usedns = warn
+logencoding = auto
+enabled = false
+mode = normal
+filter = %(__name__)s[mode=%(mode)s]
+
+# Email notifications
+destemail = {{ admin_email }}
+sendername = Fail2Ban
+mta = sendmail
+action = %(action_mw)s
+
+{% for jail in fail2ban_jails %}
+[{{ jail.name }}]
+enabled = {{ jail.enabled | lower }}
+{% if jail.port is defined %}
+port = {{ jail.port }}
+{% endif %}
+{% if jail.logpath is defined %}
+logpath = {{ jail.logpath }}
+{% endif %}
+{% if jail.maxretry is defined %}
+maxretry = {{ jail.maxretry }}
+{% endif %}
+{% if jail.bantime is defined %}
+bantime = {{ jail.bantime }}
+{% endif %}
+
+{% endfor %}

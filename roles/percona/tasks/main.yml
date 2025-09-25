@@ -1,0 +1,192 @@
+---
+- name: Install required packages for Percona
+  apt:
+    name:
+      - wget
+      - gnupg2
+      - lsb-release
+      - curl
+      - python3-pymysql
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Download Percona repository package
+  get_url:
+    url: "https://repo.percona.com/apt/percona-release_latest.generic_all.deb"
+    dest: "/tmp/percona-release_latest.generic_all.deb"
+    mode: '0644'
+
+- name: Install Percona repository package
+  apt:
+    deb: "/tmp/percona-release_latest.generic_all.deb"
+    state: present
+  become: yes
+
+- name: Setup Percona repository for PS 8.4
+  command: percona-release setup ps84
+  become: yes
+  changed_when: true
+
+- name: Update apt cache after adding Percona repository
+  apt:
+    update_cache: yes
+  become: yes
+
+- name: Set MySQL root password before installation
+  debconf:
+    name: "percona-server-server-{{ percona_version }}"
+    question: "percona-server-server/root_password"
+    value: "{{ mysql_root_password }}"
+    vtype: "password"
+  become: yes
+
+- name: Set MySQL root password confirmation before installation
+  debconf:
+    name: "percona-server-server-{{ percona_version }}"
+    question: "percona-server-server/root_password_again"
+    value: "{{ mysql_root_password }}"
+    vtype: "password"
+  become: yes
+
+- name: Install Percona Server packages
+  apt:
+    name:
+      - "percona-server-server={{ percona_package_version }}*"
+      - "percona-server-client={{ percona_package_version }}*"
+      - percona-server-common
+      - percona-toolkit
+      - percona-xtrabackup-84
+    state: present
+  become: yes
+  notify: restart mysql
+
+- name: Ensure MySQL is running
+  systemd:
+    name: mysql
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Create MySQL configuration file
+  template:
+    src: my.cnf.j2
+    dest: /etc/mysql/my.cnf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  become: yes
+  notify: restart mysql
+
+- name: Create MySQL log directory
+  file:
+    path: /var/log/mysql
+    state: directory
+    owner: mysql
+    group: mysql
+    mode: '0755'
+  become: yes
+
+- name: Secure MySQL installation
+  block:
+    - name: Remove anonymous users
+      mysql_user:
+        name: ''
+        host_all: yes
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: "{{ mysql_socket }}"
+      become: yes
+
+    - name: Remove test database
+      mysql_db:
+        name: test
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: "{{ mysql_socket }}"
+      become: yes
+
+    - name: Disallow root login remotely
+      mysql_user:
+        name: root
+        host: "{{ item }}"
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: "{{ mysql_socket }}"
+      loop:
+        - "{{ ansible_hostname }}"
+        - "127.0.0.1"
+        - "::1"
+        - "localhost"
+      become: yes
+      failed_when: false
+
+    - name: Ensure root user can only login from localhost
+      mysql_user:
+        name: root
+        password: "{{ mysql_root_password }}"
+        host: localhost
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: "{{ mysql_socket }}"
+        state: present
+      become: yes
+
+- name: Create Magento database
+  mysql_db:
+    name: "{{ mysql_magento_db }}"
+    state: present
+    encoding: utf8mb4
+    collation: utf8mb4_unicode_ci
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: "{{ mysql_socket }}"
+  become: yes
+
+- name: Create Magento database user
+  mysql_user:
+    name: "{{ mysql_magento_user }}"
+    password: "{{ mysql_magento_password }}"
+    priv: "{{ mysql_magento_db }}.*:ALL"
+    host: localhost
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: "{{ mysql_socket }}"
+  become: yes
+
+- name: Optimize MySQL for Magento
+  mysql_query:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: "{{ mysql_socket }}"
+    query: "{{ item }}"
+  loop:
+    - "SET GLOBAL innodb_buffer_pool_size = {{ mysql_innodb_buffer_pool_size.rstrip('GM') }}{{ '000000000' if mysql_innodb_buffer_pool_size.endswith('G') else ('000000' if mysql_innodb_buffer_pool_size.endswith('M') else '') }}"
+    - "SET GLOBAL max_connections = {{ mysql_max_connections }}"
+    - "SET GLOBAL thread_cache_size = {{ mysql_thread_cache_size }}"
+  become: yes
+  failed_when: false
+
+- name: Verify MySQL installation
+  command: mysql --version
+  register: mysql_version_output
+  changed_when: false
+
+- name: Display MySQL version
+  debug:
+    msg: "{{ mysql_version_output.stdout }}"
+
+- name: Check MySQL status
+  command: systemctl status mysql
+  register: mysql_status
+  changed_when: false
+  failed_when: false
+
+- name: Display MySQL service status
+  debug:
+    msg: "MySQL service is {{ 'running' if mysql_status.rc == 0 else 'not running' }}"
